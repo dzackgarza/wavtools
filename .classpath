@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="SoundProgram/" kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/home/zack/Dropbox/Public/School/Programming/wav_io/wav.jar"/>
+	<classpathentry kind="lib" path="/home/zack/Dropbox/Public/School/Programming/wav.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
