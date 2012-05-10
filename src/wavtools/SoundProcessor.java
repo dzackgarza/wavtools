@@ -36,68 +36,68 @@ import wav.*;
 public class SoundProcessor
 {   
 // Initializes arrays and an empty WavFile.
-WavFile inputwav;
-WavFile outputwav = new WavFile();
-int[] inputdata;
-int[] outputdata;
+WavFile inputWav;
+WavFile outputWav = new WavFile();
+String inputPath;
+String outputPath;
+int[] inputData;
+int[] outputData;
 
 
     
-    public  void setup(String path)
+    public  void setup()
     {
-        this.inputwav = new WavFile(path);
-        this.inputdata= this.inputwav.getMonoData();
+        this.inputWav = new WavFile(inputPath);
+        this.inputData= inputWav.getMonoData();
+        this.outputWav = new WavFile();
     }
     
-    public void quieter(String outputpath){
+    public void quieter(double factor){
         
         int i= 0;
-        while (i < this.inputwav.numFrames()){
-            inputdata[i]= inputdata[i] / 2;
+        while (i < this.inputWav.numFrames()){
+            inputData[i]= inputData[i] / (int) (1/factor);
             i= i + 1;
         }
         
-        outputwav.setData(inputdata);
-        outputwav.save(outputpath);
+        outputWav.setData(inputData);
     }
     
-    public void combine(String inputwav2_path, String outputpath){
+    public void combine(String inputWav2_path){
         
-        WavFile inputwav2 = new WavFile(inputwav2_path);
-        int[] inputdata2= inputwav2.getMonoData();
-        int[] inputdata3= new int[20*44100];
+        WavFile inputWav2 = new WavFile(inputWav2_path);
+        int[] inputData2= inputWav2.getMonoData();
+        int[] inputData3= new int[20*44100];
         
         int i= 0;
         while (i < 20*44100){
-            inputdata3[i]= inputdata[i]+inputdata2[i];
+            inputData3[i]= inputData[i]+inputData2[i];
             i++;
         }
         
-        outputwav.setData(inputdata3);
-        outputwav.save(outputpath);
+        outputWav.setData(inputData3);
     }
     
-    public void reverse(String outputpath){
-        int[] outputdata= new int[this.inputwav.numFrames()];
+    public void reverse(){
+        int[] outputData= new int[this.inputWav.numFrames()];
         int i = 0;
-        while(i < this.inputwav.numFrames()){
-            outputdata[i] = inputdata[this.inputwav.numFrames()-i-1];
+        while(i < this.inputWav.numFrames()){
+            outputData[i] = inputData[this.inputWav.numFrames()-i-1];
             i++;
         }
-        outputwav.setData(outputdata);
-        outputwav.save(outputpath);
+        outputWav.setData(outputData);
         
     }
     /**
      * Changes the pitch. Speeds up the sound by a factor of 1.5 by removing every third frame.
      * 
      */
-    public void speedUp(String outputpath){
-        double variablerate= (2.0/3.0);
-        int[] outputdata= new int[(int) (variablerate * inputwav.numFrames())];
+    public void speedUp(double variableRate){
+        variableRate= (1.0/variableRate);
+        int[] outputData= new int[(int) (variableRate * inputWav.numFrames())];
         int i= 0;
         int v= 0;
-        while (i < (int) (this.inputwav.numFrames() * variablerate)){
+        while (i < (int) (this.inputWav.numFrames() * variableRate)){
            /**
              * Algorithm: Increments a counter for every even iterated.
              * 
@@ -109,50 +109,46 @@ int[] outputdata;
              **/
             if (i % 2 ==0 && i != 0)
                 v++;
-            outputdata[i]= inputdata[i+v];
+            outputData[i]= inputData[i+v];
 
             i++;
         }
         
-        outputwav.setData(outputdata);
-        outputwav.save(outputpath);
+        outputWav.setData(outputData);
     }
     
-    public void removeSilence(String outputpath)
-    {
+    public void removeSilence(int threshold) {
         int i = 0;
         int lengthOfSilence = 0;
         int skipCounter = 0;
         
         // Sometimes, silence is not true silence!
-        int threshold = 5;
         
         // First, we find out how much silence is in the track so we know the proper size of the output.
-        while (i < this.inputwav.numFrames()){
-            if (inputdata[i] <= threshold && inputdata[i] >= (-1 * threshold))
+        while (i < this.inputWav.numFrames()){
+            if (inputData[i] <= threshold && inputData[i] >= (-1 * threshold))
                 lengthOfSilence++;
             i++;
             }
-        int[] outputdata= new int[this.inputwav.numFrames() - lengthOfSilence];
+        int[] outputData= new int[this.inputWav.numFrames() - lengthOfSilence];
         
         // Reset and reuse the iterator (#TODO there must be a better way..)
         i = 0;
         
         // Stream input to output, skipping spots where volume is inside of threshold of silence.
         // Uses a counter to keep track of the desired position in the output when skipping data points.
-        while (i < this.inputwav.numFrames()){
-                    if (inputdata[i] > threshold || inputdata[i] < (-1 * threshold))
-                        outputdata[i-skipCounter] = inputdata[i];
-                    else if (inputdata[i] <= threshold && inputdata[i] >= (-1 * threshold))
+        while (i < this.inputWav.numFrames()){
+                    if (inputData[i] > threshold || inputData[i] < (-1 * threshold))
+                        outputData[i-skipCounter] = inputData[i];
+                    else if (inputData[i] <= threshold && inputData[i] >= (-1 * threshold))
                         skipCounter ++;
                     i++;
         }
         
-        outputwav.setData(outputdata);
-        outputwav.save(outputpath);
+        outputWav.setData(outputData);
     }
     
-    public void addEcho(String outputpath)
+    public void addEcho(double echoLength)
     {
         /** Adds the current position in the song with a position 'lengthOfEcho' behind it */
         
@@ -160,25 +156,24 @@ int[] outputdata;
         int i = 0;
         
         // Measured in frames
-        int lengthOfEcho = 4800;
+        // int lengthOfEcho = 4800;
+        int lengthOfEcho = (int) (echoLength * 44100);
+        int[] outputData = new int [this.inputWav.numFrames()];
         
-        int[] outputdata = new int [this.inputwav.numFrames()];
         
-        
-        while (i < this.inputwav.numFrames())
+        while (i < this.inputWav.numFrames())
         {
             if (i >= lengthOfEcho){
-                outputdata[i] = (inputdata[i] + inputdata[i - lengthOfEcho]);
+                outputData[i] = (inputData[i] + inputData[i - lengthOfEcho]);
             }
             // Necessary, because during the first 'lengthOfEcho' frames, not enough sound has been
             // produced to create an echo.
             else if (i < lengthOfEcho)
-                outputdata[i] = inputdata[i];
+                outputData[i] = inputData[i];
             i++;
         }
         
-        outputwav.setData(outputdata);
-        outputwav.save(outputpath);
+        outputWav.setData(outputData);
     }
     
     /**
@@ -196,15 +191,14 @@ int[] outputdata;
     public WavFile trim(WavFile input, int start, int end)
     {
         int[] data= input.getMonoData();
-        int[] newdata= new int[end-start+1];
+        int[] newData= new int[end-start+1];
          
-        for (int i= 0; i < end-start+1; i++)
-        {
-            newdata[i]= data[i+start];
+        for (int i= 0; i < end-start+1; i++) {
+            newData[i]= data[i+start];
         }
          
         WavFile newWave = new WavFile();
-        newWave.setData(newdata);
+        newWave.setData(newData);
         return newWave;
     }
          
@@ -216,21 +210,25 @@ int[] outputdata;
         * Sound s= new Sound();
         * s.trimFile("C:\\.......", "C:\\......", 4.5, 3.0);
         */
-    public void trimFile(String inFileName, String outFileName, double startTime, double length)
+    
+    public boolean trimFile(double startTime, double length)
     {
-        WavFile inputwav = new WavFile(inFileName);
         
         int beginFrame = (int) (startTime * 44100);
         int endFrame = (int) (beginFrame + (length * 44100));
         
-        //int[] inputdata = inputwav.getMonoData();
         
         // 0 < begin < end < upper bound
-        if (0 < beginFrame && beginFrame < endFrame && endFrame < inputwav.numFrames())
-        {
-            WavFile outputwav = trim(inputwav, beginFrame, endFrame);
-            outputwav.save(outFileName);
+        if (0 < beginFrame && beginFrame < endFrame && endFrame < inputWav.numFrames()) {
+            this.outputWav = trim(inputWav, beginFrame, endFrame);
+            return true;
         }
+        
+        else {
+        	System.out.println("Input not within bounds, please try again.");
+    		return false;
+        }
+        
     }
     
 }
