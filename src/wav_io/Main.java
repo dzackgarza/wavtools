@@ -1,3 +1,4 @@
+package wav_io;
 import java.util.Scanner;
 import java.io.File;
 
@@ -5,12 +6,11 @@ public class Main
 {
 	static Scanner keyboardinput = new Scanner(System.in);
     static SoundProcessor s = new SoundProcessor();
-    static File f = null;
     static String filename = null;
    
     public static void main (String[] args)
     {
-    	SoundProcessor s = new SoundProcessor();
+    	new SoundProcessor();
         Boolean moretasks = null;
         
         do
@@ -20,9 +20,10 @@ public class Main
             int decision = Integer.parseInt(getKeyboardInput());
             
             if (1 <= decision && decision <=7) {
-                s.setup(getInputFile());
-                getOutputFile(decision);
-                moretasks = checkContinue();
+                System.out.println(processMenuChoice(decision, getInputFile(), getOutputFile()));
+                
+            	System.out.println("Perform another task? (y/n)");
+        		moretasks = checkAnswer();
             }
             
             else if (decision == 8) {
@@ -53,8 +54,10 @@ public class Main
         return keyboardinput.next();
     }
 
-    public static String processMenuChoice(int decision, String outputpath)
+    public static String processMenuChoice(int decision, String inputpath, String outputpath)
     {
+    	s.setup(inputpath);
+    	
     	switch (decision) {
 	        case 1: s.quieter(outputpath);
 	            return "Done!";
@@ -80,108 +83,106 @@ public class Main
     public static String getInputFile()
     {
     System.out.println("Choose input wav file.");
+    String inputfilepath = null;
+    File inputfile = null;
     
         do
         {
             System.out.print("Enter path to file: ");
-            filename = getKeyboardInput();
-            f = new File(filename);
-            if (!f.canRead())
+            inputfilepath = getKeyboardInput();
+            inputfile = new File(inputfilepath);
+            if (!inputfile.canRead()) {
                 System.out.println("File does not exist. Please try again.");
+            }
         }
-        while (!f.canRead());
-        return filename;
+        while (!inputfile.canRead());
+        return inputfilepath;
 
     }
     
-    public static void getOutputFile(int decision)
+    public static String getOutputFile()
     {
     	
-            
             boolean overwrite = false;
             String outputpath = null;
             
             do {
             	 System.out.print("Please enter an output filename: ");
-                 
-                 String overwritedecision = null;
-                 
-                 
-                if (f.canRead()) {
+            	 outputpath = getKeyboardInput();
+            	 File outputfile = new File(outputpath);
+            	 
+                if (outputfile.canRead()) {
                 	
-                    System.out.println("File already exists. Would you like to overwrite? (y/n)");
-                    Boolean inputvalidity = null; // Primitive boolean can't be null?
-                    
-                    checkAnswer();
+                    System.out.println("File already exists. Would you like to overwrite? (y/n)");                    
+                    overwrite = checkAnswer();
                 }
                     
-                else if(!f.canRead() || overwritedecision == "y") {
-                	outputpath = getKeyboardInput();
+                else if(!outputfile.canRead()) {
                 	overwrite = true;
                 }
                 
-            } while (overwrite == false);
-            
-            
-            System.out.println(processMenuChoice(decision,outputpath));
-            
-            
+            } while (overwrite == false);       
+            return outputpath;
             
         }
     
     
     public static boolean checkAnswer()
-
     {
-    	do { // Check if the answer is valid
+    Boolean inputvalidity = null;
+    Boolean yesorno = null;    
+    
+    	do { 
+    		// Check if the answer is valid
         	
-        	overwritedecision = keyboardinput.next(); // Get decision to overwrite
-        	
-        	if (overwritedecision == "y" || overwritedecision == "n") {
-        		inputvalidity = true; // Breaks this loop 
+    		String inputtocheck = getKeyboardInput();
+    		inputtocheck = inputtocheck.intern();
+	    		// Contents of string are not known until runtime, so it must be interned
+	    		// in order to use the '==' operator.
+	    		
+        	if (inputtocheck == "y"
+    			|| inputtocheck == "Y"
+    			|| inputtocheck == "n" 
+    			|| inputtocheck == "N") {
+        		// Input is valid, breaks this loop 
         		
-        		if (overwritedecision == "y") {
-        			overwrite = true;
+        		inputvalidity = true; 
+
+        		if (inputtocheck == "y" || inputtocheck == "Y") {
+        			yesorno = true;
         		}
         		
-        		else if (overwritedecision == "n") {
-        			overwrite = false;
+        		else if (inputtocheck == "n" || inputtocheck == "N") {
+        			yesorno = false;
         		}
         		
         	}
         	
-        	else {
+        	else { 
+        		// Loops back to get a valid response
+        		
         		inputvalidity = false;
         		System.out.println("Not a valid response, please try again.");
-        	} // Loops back to get a valid response
+        	} 
         	
+        		
     	} while (inputvalidity == false);
-    	return overwrite
-    }
-    
-    public static boolean checkContinue()
-    {
-    	System.out.println("Perform another task? (y/n)");
-    	String anothertask = getKeyboardInput();
     	
-    	if (anothertask == "y") {
-    		return true;
-    	}
-    	else {
-    		return false;
-    	}
-    
-    
+    	return yesorno;
     }
+    
+    
+    
+    
     public static void processTrim(String input, String output)
     {
         
         System.out.print("When to start trimming? ");
-        String start = keyboardinput.next();
+        String start = getKeyboardInput();
         double startTime = Double.parseDouble(start);
         
         System.out.print("How long? ");
-        String length = keyboardinput.next();
+        String length = getKeyboardInput();
         double lengthTime = Double.parseDouble(length);
         
         s.trimFile(input, output, startTime, lengthTime);

@@ -1,3 +1,4 @@
+package wav_io;
 import wav.*;
 
 /**
@@ -25,7 +26,7 @@ import wav.*;
  * WavFile Methods Reference:
  * 
  * getMonoData : none -> int[]
- * getDataOfChannel : channel (int) -> int[]
+ * getDataOfChannel : channel (int) -> int[] ; 0: Left, 1: Right
  * setData : data (int[]) -> none
  * setDataOfChannel : data (int[]), channel (int) -> none
  * save : filename (String) -> none
@@ -35,23 +36,23 @@ import wav.*;
 public class SoundProcessor
 {   
 // Initializes arrays and an empty WavFile.
-WavFile inputwav= new WavFile();
+WavFile inputwav;
 WavFile outputwav = new WavFile();
 int[] inputdata;
 int[] outputdata;
 
 
     
-    public void setup(String path)
+    public  void setup(String path)
     {
         this.inputwav = new WavFile(path);
-        this.inputdata= inputwav.getMonoData();
+        this.inputdata= this.inputwav.getMonoData();
     }
     
     public void quieter(String outputpath){
         
         int i= 0;
-        while (i < inputwav.numFrames()){
+        while (i < this.inputwav.numFrames()){
             inputdata[i]= inputdata[i] / 2;
             i= i + 1;
         }
@@ -77,10 +78,10 @@ int[] outputdata;
     }
     
     public void reverse(String outputpath){
-        int[] outputdata= new int[inputwav.numFrames()];
+        int[] outputdata= new int[this.inputwav.numFrames()];
         int i = 0;
-        while(i < inputwav.numFrames()){
-            outputdata[i] = inputdata[inputwav.numFrames()-i-1];
+        while(i < this.inputwav.numFrames()){
+            outputdata[i] = inputdata[this.inputwav.numFrames()-i-1];
             i++;
         }
         outputwav.setData(outputdata);
@@ -96,7 +97,7 @@ int[] outputdata;
         int[] outputdata= new int[(int) (variablerate * inputwav.numFrames())];
         int i= 0;
         int v= 0;
-        while (i < (int) (inputwav.numFrames() * variablerate)){
+        while (i < (int) (this.inputwav.numFrames() * variablerate)){
            /**
              * Algorithm: Increments a counter for every even iterated.
              * 
@@ -104,6 +105,7 @@ int[] outputdata;
              * Output: 0  1  2  3  4  5  6  7  8  9   10  11  12  13  14 ...
              * Input:  0  1  3  4  6  7  9  10 12 13  15  16  18  19  21 ...
              *         =  =  +1 +1 +2 +2 +3 +3 +4 +4  +5  +5  +6  +6  +7 ...
+             *         		      |     |     |      |       |       |
              **/
             if (i % 2 ==0 && i != 0)
                 v++;
@@ -126,19 +128,19 @@ int[] outputdata;
         int threshold = 5;
         
         // First, we find out how much silence is in the track so we know the proper size of the output.
-        while (i < inputwav.numFrames()){
+        while (i < this.inputwav.numFrames()){
             if (inputdata[i] <= threshold && inputdata[i] >= (-1 * threshold))
                 lengthOfSilence++;
             i++;
             }
-        int[] outputdata= new int[inputwav.numFrames() - lengthOfSilence];
+        int[] outputdata= new int[this.inputwav.numFrames() - lengthOfSilence];
         
         // Reset and reuse the iterator (#TODO there must be a better way..)
         i = 0;
         
         // Stream input to output, skipping spots where volume is inside of threshold of silence.
         // Uses a counter to keep track of the desired position in the output when skipping data points.
-        while (i < inputwav.numFrames()){
+        while (i < this.inputwav.numFrames()){
                     if (inputdata[i] > threshold || inputdata[i] < (-1 * threshold))
                         outputdata[i-skipCounter] = inputdata[i];
                     else if (inputdata[i] <= threshold && inputdata[i] >= (-1 * threshold))
@@ -160,10 +162,10 @@ int[] outputdata;
         // Measured in frames
         int lengthOfEcho = 4800;
         
-        int[] outputdata = new int [inputwav.numFrames()];
+        int[] outputdata = new int [this.inputwav.numFrames()];
         
         
-        while (i < inputwav.numFrames())
+        while (i < this.inputwav.numFrames())
         {
             if (i >= lengthOfEcho){
                 outputdata[i] = (inputdata[i] + inputdata[i - lengthOfEcho]);
