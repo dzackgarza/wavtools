@@ -6,6 +6,8 @@ import java.io.File;
  * #TODO
  * 		Sort out whether statics are necessary
  * 		Redundant declarations - SCanner, SoundProcessor, etc.
+ * 		Accept command line arguments
+ * 		Ability to switch files from main menu
  */
 
 public class Main {
@@ -35,7 +37,9 @@ public class Main {
 				if (continueWorking) {
 					// Use the input as the output to continue modifying
 					// the same file.
-					s.outputWav = s.inputWav;
+					s.inputData = s.outputWav.getAllData();
+					s.inputWav = s.outputWav;
+					
 	    		}     
 				
 				else if (!continueWorking) {
@@ -49,11 +53,11 @@ public class Main {
 	        int decision = Integer.parseInt(getKeyboardInput());
 	    	System.out.println(processMenuChoice(decision));           	        	
 	            
-	        if (decision == 8) {
+	        if (decision == 9) {
 	        	moreTasks = false;
 	        }
 	        
-	        else if (1 <= decision && decision <=7) {
+	        else if (1 <= decision && decision <=8) {
 	        	System.out.println("Perform another task? (y/n)");
 	        	moreTasks = getYesOrNo();
 	        }
@@ -63,6 +67,7 @@ public class Main {
         s.outputWav.save(s.outputPath);
         
         System.out.println("File saved at " + s.outputPath);
+        System.out.println("Goodbye!");
     }
     public static void promptForPathAndSetup() {
     	/*
@@ -83,7 +88,8 @@ public class Main {
       System.out.println("5 - Remove Silence");
       System.out.println("6 - Add Echo");
       System.out.println("7 - Trim");
-      System.out.println("8 - Exit");
+      System.out.println("8 - Save");
+      System.out.println("9 - Exit");
       
       
     }
@@ -105,7 +111,7 @@ public class Main {
     
     	
     	switch (decision) {
-	        case 1: System.out.println("Enter desired output volume as an integer percentage of input volume. (For example, '10' returns" +
+	        case 1: System.out.println("Enter desired output volume as an integer percentage of input volume. (For example, '10' returns " +
 	        		"a file that is 10% of the original volume. ");
 	        	s.quieter(Integer.parseInt(getKeyboardInput()));
             	return "Done!";
@@ -118,7 +124,7 @@ public class Main {
 	        		"a file that is 1.5 times the speed of the original; \".75\" returns a file that is 3/4 the speed.");
 	        	s.speedUp(Double.parseDouble(getKeyboardInput()));
             	return "Done!";
-	        case 5: System.out.println("Enter an integer volume threshold. Everyhing under this will be considered \"silence\" and will be cut" +
+	        case 5: System.out.println("Enter an integer volume threshold. Everyhing under this will be considered \"silence\" and will be cut. " +
 	        		"Reccommended value: ~5.");
 	        	s.removeSilence(Integer.parseInt(getKeyboardInput()));
             	return "Done!";
@@ -128,8 +134,11 @@ public class Main {
             	return "Done!";
 	        case 7: processTrim();
         		return "Done!";
-	        case 8:
-        		return "Goodbye!";
+	        case 8: s.outputWav.save(s.outputPath);
+	        	return "File saved to " + s.outputPath;
+	      
+	        case 9:
+        		return "Exiting...";
 	        default: 
         		return("Not a valid choice.");
     	}
