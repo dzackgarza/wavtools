@@ -35,7 +35,7 @@ public class Main {
 				boolean continueWorking = getYesOrNo();
 				
 				if (continueWorking) {
-					// Use the input as the output to continue modifying
+					// Use the output as the new input to continue modifying
 					// the same file.
 					s.inputData = s.outputWav.getAllData();
 					s.inputWav = s.outputWav;
@@ -50,7 +50,10 @@ public class Main {
 	    	}
 	        
 			printMenu();
-	        int decision = Integer.parseInt(getKeyboardInput());
+			
+			// #TODO Catch invalid input.
+			int decision = Integer.parseInt(getKeyboardInput());
+			
 	    	System.out.println(processMenuChoice(decision));           	        	
 	            
 	        if (decision == 9) {
@@ -69,6 +72,7 @@ public class Main {
         System.out.println("File saved at " + s.outputPath);
         System.out.println("Goodbye!");
     }
+    
     public static void promptForPathAndSetup() {
     	/*
     	 * Gets and sets the input and output paths and sets the wav files
@@ -78,13 +82,14 @@ public class Main {
 		getOutputFile();
 		s.setup();
     }
+    
     public static void printMenu() {
     
 	  System.out.println("Please select from the following effects:");
       System.out.println("1 - Reduce Volume");
       System.out.println("2 - Combine two clips");
       System.out.println("3 - Reverse Audio");
-      System.out.println("4 - Increase Speed");
+      System.out.println("4 - Alter Speed");
       System.out.println("5 - Remove Silence");
       System.out.println("6 - Add Echo");
       System.out.println("7 - Trim");
@@ -163,6 +168,7 @@ public class Main {
                 System.out.println("File does not exist. Please try again.");
             }
         }
+        
         while (!inputFile.canRead());
         s.inputPath = inputFilePath;
         return inputFilePath;
@@ -205,6 +211,7 @@ public class Main {
     /*
      * Prompts the user for a yes or no input. Only completes once the user has 
      * entered a properly formatted input. Returns a boolean denoting their choice.
+     * TODO: How can I make this more general...?
      */
 
 	    Boolean inputValidity = null;
@@ -215,9 +222,12 @@ public class Main {
         	
     		String inputToCheck = getKeyboardInput();
     		inputToCheck = inputToCheck.intern();
-	    		// Contents of string are not known until runtime, so it must be interned
-	    		// in order to use the '==' operator.
-	    		
+	    		/* Contents of string are not known until runtime, so it must be interned
+	    		 * in order to use the '==' operator. An article I read put it best:
+    			 *
+    			 * "       '==' best translates to 'probably equals'.                   "
+	    		 */
+    		
         	if (inputToCheck == "y"
     			|| inputToCheck == "Y"
     			|| inputToCheck == "n" 

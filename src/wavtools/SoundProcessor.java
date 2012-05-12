@@ -2,14 +2,6 @@ package wavtools;
 import wav.*;
 
 /**
- * #TODO
- * Prompt the user for an input file
- * Prompt the user for an output file
- * Prompt the user for the starting time
- * Prompt the user for the length
- * Trim the file and save it.
- * 
- * 
  * Available Methods:
  * 
  * quieter();
@@ -105,34 +97,29 @@ int[][] outputData;
         outputWav.setData(wavOutputData);
         
     }
-    /**
-     * Changes the pitch. Speeds up the sound by a factor of 1.5 by removing every third frame.
-     * #TODO Figure out an algorithm to allow variable speeds.
-     */
+    
     public void speedUp(double variableRate) {
-    	// #TODO Write good rounding method. That would probably make this a lot easier.
-        int[][] outputData= new int[inputData.length][(int) (variableRate * inputWav.numFrames())];
-        int v= 0;
-        for (int i= 0; i < (int) (this.inputWav.numFrames() / variableRate); i++) {
+    	
+        int[][] outputData= new int[inputData.length][(int) (inputWav.numFrames() / variableRate)];
+        
+        for (int i= 0; i < (int) (Math.floor((this.inputWav.numFrames() / variableRate))); i++) {
         	for (int t=0; t < inputData.length; t++) {
-            /**
-             * Algorithm: Increments a counter for every even iterated.
-             * 
-             * 
-             * Output: 0  1  2  3  4  5  6  7  8  9   10  11  12  13  14 ...
-             * Input:  0  1  3  4  6  7  9  10 12 13  15  16  18  19  21 ...
-             *         =  = +1 +1 +2 +2 +3  +3 +4 +4  +5  +5  +6  +6  +7 ...
-             *         		      |     |     |      |       |       |
-             **/
-        		if (variableRate > 1) {
-    	            outputData[t][i]= inputData[t][i+v];
+        		
+        	if (variableRate >= 1) {
+        		outputData[t][i]= inputData[t][(int)(Math.ceil(i * variableRate))];
+        	}
+        	if (variableRate < 1) {
+        		if (i==0) {
+        			outputData[t][i] = inputData[t][0]; }
+        		else {
+        			outputData[t][i]= inputData[t][(int)(Math.ceil(i * variableRate)) - 1];
         		}
-        		else if (variableRate < 1) {
-    	            outputData[t][i]= inputData[t][i-v];
-        		}
-	            if (inputData[t][i]/outputData[t][i] == variableRate)
-	                v++;
-	            // Round up (i * variableRate) to obtain reference frame
+        	}
+            // Round up (i * variableRate) to obtain reference frame
+        	// Choosing between floor and ceil for these calculations is largely a matter
+        	// of preference; its only practical effect determines which frames are duplicated
+        	// For example, when slowing down a file, frames must be duplicated to increase
+        	// the length and information of the output.
         	}
         }
         
@@ -180,13 +167,12 @@ int[][] outputData;
     
     public void addEcho(double echoLength)
     {
-        /** Adds the current position in the song with a position 'lengthOfEcho' behind it */
+        /** Combines the current position in the song with a position 'lengthOfEcho' behind it */
         
         
         
         
-        // Measured in frames
-        // int lengthOfEcho = 4800;
+        // Conversion to frames
         int lengthOfEcho = (int) (echoLength * 44100);
         int[][] tempOutputData = new int [inputData.length][this.inputWav.numFrames()];
         
@@ -208,18 +194,12 @@ int[][] outputData;
     }
     
     /**
-    * trim : input (WavFile), start (int), end (int) -> WavFile
-    * Given a WavFile, the starting frame, and ending frame,
-    * return a new WavFile with the piece between start and end
-    * extracted.
+    * trim : start (int), end (int) -> none
+    * Given the starting time (second) and ending time (seconds) of the desired clip,
+    * trim the working wav file down to be within these parameters.
     * 
-    * Sound s= new Sound();
-    * WavFile w= new WavFile("C:\\...");
-    * WaveFile x= s.trim(w, 100000, 500000);
-    * x.numFrames() -> 400000
-    * s.save("C:\.....");
     */
-    public void trim(int start, int end)
+    private void trim(int start, int end)
     {
         int[][] newData= new int[inputData.length][end-start+1];
          
@@ -233,15 +213,13 @@ int[][] outputData;
         outputWav.setData(newData);
     }
          
-        /**
-        * trimFile : infile (String), outfile (String), startTime (double), length (double) -> none
-        * Given the input filename, output filename, starting time (seconds), and length (seconds),
-        * trim the input file down and save it to the output file.
-        * 
-        * Sound s= new Sound();
-        * s.trimFile("C:\\.......", "C:\\......", 4.5, 3.0);
-        */
-    
+    /**
+    * trimFile : startTime (double), length (double) -> none
+    * Given the starting time (seconds), and length (seconds),
+    * trim the input file to be within the new beginning and 
+    * end times.
+    * 
+    */
     public boolean trimFile(double startTime, double length)
     {
         
